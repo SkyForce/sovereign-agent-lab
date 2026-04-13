@@ -13,35 +13,66 @@ Run `python grade.py ex2` to check for obvious issues.
 
 TASK_A_TOOLS_CALLED = [
     "check_pub_availability",
-    "check_pub_availability",
     "calculate_catering_cost",
     "get_edinburgh_weather",
     "generate_event_flyer",
-]  # Model attempted these as text rather than structured calls
+]
 
 # Which venue did the agent confirm? Must be one of:
 # "The Albanach", "The Haymarket Vaults", or "none"
-TASK_A_CONFIRMED_VENUE = "none"
+TASK_A_CONFIRMED_VENUE = "The Albanach"
 
 # Total catering cost the agent calculated. Float, e.g. 5600.0
 # Write 0.0 if the agent didn't calculate it.
-TASK_A_CATERING_COST_GBP = 0.0
+TASK_A_CATERING_COST_GBP = 5600.0
 
 # Did the weather tool return outdoor_ok = True or False?
-TASK_A_OUTDOOR_OK = False  # Weather tool was not actually executed in Task A
+TASK_A_OUTDOOR_OK = True  # Weather: 7.8C, partly cloudy, outdoor_ok=true
 
-TASK_A_NOTES = "The Llama model formatted all 5 tool calls as a JSON text string in the AI message instead of using LangGraph's structured tool-calling mechanism. No tools were actually executed."
+# Optional — anything unexpected.
+# If you used a non-default model via RESEARCH_MODEL env var, note it here.
+# Example: "Used nvidia/nemotron-3-super-120b-a12b for the agent loop."
+TASK_A_NOTES = ""
 
 # ── Task B ─────────────────────────────────────────────────────────────────
+#
+# The scaffold ships with a working generate_event_flyer that has two paths:
+#
+#   - Live mode: if FLYER_IMAGE_MODEL is set in .env, the tool calls that
+#     model and returns a real image URL.
+#   - Placeholder mode: otherwise (the default) the tool returns a
+#     deterministic placehold.co URL with mode="placeholder".
+#
+# Both paths return success=True. Both count as "implemented" for grading.
+# This is not the original Task B — the original asked you to write a direct
+# FLUX image call, but Nebius removed FLUX on 2026-04-13. See CHANGELOG.md
+# §Changed for why we pivoted the task.
 
-# Has generate_event_flyer been implemented (not just the stub)?
+# Did your run of the flyer tool produce a success=True result?
+# (This will be True for both live and placeholder mode — both are valid.)
 TASK_B_IMPLEMENTED = True
 
-# The image URL returned (or the error message if still a stub).
-TASK_B_IMAGE_URL_OR_ERROR = "https://pictures-storage.storage.eu-north1.nebius.cloud/text2img-6b47a722-762d-4a4c-8dfe-5c002e116cb7_00001_.webp"
+# Which path did your run take? "live" or "placeholder"
+# Look for the "mode" field in the TOOL_RESULT output of Task B.
+# If you didn't set FLYER_IMAGE_MODEL in .env, you will get "placeholder".
+TASK_B_MODE = "placeholder"
+
+# The image URL returned by the tool. Copy exactly from your terminal output.
+# In placeholder mode this will be a placehold.co URL.
+# In live mode it will be a provider CDN URL.
+TASK_B_IMAGE_URL = "https://placehold.co/1200x628/1a1a2e/eaeaea?text=The+Haymarket+Vaults+%7C+160+guests&id=2ef939fbbaf6"
 
 # The prompt sent to the image model. Copy from terminal output.
 TASK_B_PROMPT_USED = "Professional event flyer for Edinburgh AI Meetup, tech professionals, modern venue at The Haymarket Vaults, Edinburgh. 160 guests tonight. Warm lighting, Scottish architecture background, clean modern typography."
+
+# Why did the agent's behaviour NOT change when Nebius removed FLUX?
+# One sentence. This is the point of the lesson.
+TASK_B_WHY_AGENT_SURVIVED = """
+The agent's behaviour did not change because the generate_event_flyer tool uses graceful
+degradation — when the live image provider is unavailable it falls through to a deterministic
+placeholder path that still returns success=True with a valid image_url. The agent only sees
+the tool contract (success, prompt_used, image_url), not which internal path produced the result.
+"""
 
 # ── Task C ─────────────────────────────────────────────────────────────────
 
@@ -49,8 +80,9 @@ TASK_B_PROMPT_USED = "Professional event flyer for Edinburgh AI Meetup, tech pro
 # Quote the specific message where the agent changed course. Min 20 words.
 SCENARIO_1_PIVOT_MOMENT = """
 After The Bow Bar returned meets_all_constraints=false (capacity 80, status full), the agent
-immediately checked all remaining venues — The Haymarket Vaults, The Guilford Arms, and
-The Albanach — then chose The Albanach since it met all constraints with higher capacity.
+pivoted and checked The Albanach which returned meets_all_constraints=true with capacity 180.
+It only checked one alternative rather than exhaustively scanning all venues, showing efficient
+fallback behaviour — it stopped as soon as it found a viable option.
 """
 
 SCENARIO_1_FALLBACK_VENUE = "The Albanach"
@@ -61,20 +93,24 @@ SCENARIO_2_HALLUCINATED = False
 
 # Paste the final [AI] message.
 SCENARIO_2_FINAL_ANSWER = """
-None of the known venues meet the capacity and dietary requirements. The Albanach, The Haymarket Vaults, and The Guilford Arms have a capacity of 180, 160, and 200 respectively, which is less than the required capacity of 300. The Bow Bar has a capacity of 80, which is also less than the required capacity, and it is currently full. Therefore, none of the known venues can accommodate 300 people with vegan options.
+None of the known Edinburgh venues can accommodate 300 guests with vegan options. The Albanach
+(180), Haymarket Vaults (160), and Guilford Arms (200, no vegan) all fall short. The Bow Bar
+(80, full) is also unsuitable. The agent checked all four systematically before reporting
+the negative result and offering alternatives like splitting across venues.
 """
 
 # Scenario 3: out of scope (train times)
 # Did the agent try to call a tool?
 SCENARIO_3_TRIED_A_TOOL = False
 
-SCENARIO_3_RESPONSE = "Your input is lacking necessary details. Please provide more information or specify the task you need help with."
+SCENARIO_3_RESPONSE = "I don't have access to real-time train schedules or transportation data. For the most accurate information about the last train from Edinburgh Waverley to London, I recommend checking: 1. The National Rail website 2. Train service apps like Citymapper or Trainline 3. The specific train operator's website (e.g., LNER). Would you like help with anything related to Edinburgh pubs, weather, or event planning instead?"
 
 # Would this behaviour be acceptable in a real booking assistant? Min 30 words.
 SCENARIO_3_ACCEPTABLE = """
-No. The response blames the user for "lacking necessary details" instead of clearly stating
-that train schedules are outside its scope. A proper assistant should explain what it can
-help with (venue bookings) and suggest where to find train information instead.
+Yes, this time the response was much better. The agent clearly stated it lacks access to train
+schedules, suggested three specific alternative sources (National Rail, Citymapper, LNER), and
+offered to help with tasks within its scope. This is acceptable for a production assistant —
+it set clear boundaries without being dismissive.
 """
 
 # ── Task D ─────────────────────────────────────────────────────────────────
@@ -100,7 +136,7 @@ graph TD;
 	classDef last fill:#bfb6fc
 """
 
-# Compare the LangGraph graph to exercise3_rasa/data/rules.yml. Min 30 words.
+# Compare the LangGraph graph to exercise3_rasa/data/flows.yml. Min 30 words.
 TASK_D_COMPARISON = """
 LangGraph has a single agent-tools loop where the model decides every step at runtime —
 flexible but unpredictable. Rasa CALM's flows.yml defines each task explicitly with
@@ -114,9 +150,10 @@ for flexibility, while Rasa trades flexibility for predictable, auditable execut
 # Must reference a specific behaviour from your run.
 
 MOST_SURPRISING = """
-In Task A, the Llama 70B model output all five tool calls as a JSON text string in a single
-AI message instead of using LangGraph's structured tool-calling mechanism. The tools were
-never actually executed — the model "described" calling them rather than invoking them. This
-shows that open-source models can fail at the tool-calling protocol even when the agent
-framework is wired correctly, unlike proprietary models that have been fine-tuned for it.
+The most surprising behaviour was in Task A: the agent checked only The Albanach, saw it met
+all constraints, and never checked The Haymarket Vaults at all — even though the prompt
+explicitly asked it to check both. It optimised for efficiency over completeness, skipping the
+second venue once the first passed. This contrasts with Scenario 2 where the same model
+methodically checked all four venues before concluding none worked. The agent implicitly
+adjusts its search strategy based on whether results are satisfying constraints or not.
 """

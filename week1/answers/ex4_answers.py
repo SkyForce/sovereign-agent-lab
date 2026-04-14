@@ -30,7 +30,7 @@ untouched, demonstrating MCP's decoupling benefit.
 
 # ── MCP vs hardcoded ───────────────────────────────────────────────────────
 
-LINES_OF_TOOL_CODE_EX2 = 212   # venue_tools.py (directly imported, tightly coupled)
+LINES_OF_TOOL_CODE_EX2 = 309   # venue_tools.py (directly imported, tightly coupled)
 LINES_OF_TOOL_CODE_EX4 = 0     # exercise4_mcp_client.py has zero tool logic — tools discovered dynamically via MCP
 
 # What does MCP buy you beyond "the tools are in a separate file"? Min 30 words.

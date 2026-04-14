@@ -80,26 +80,27 @@ How many guests are you confirming for tonight's event?
 Your input ->  160 guests                                                                 
 And how many of those guests will need vegan meals?
 Your input ->  can you arrange parking for the speakers?                                  
-I'm sorry, I'm not trained to help with that.
 I can only help with confirming tonight's venue booking. For anything else, please contact the event organiser directly.
 Would you like to continue with confirm booking?
 """
 
 # Describe what CALM did after the out-of-scope message. Min 20 words.
 CONVERSATION_3_WHAT_HAPPENED = """
-CALM recognized the parking request as out of scope, said "I'm not trained to help with
-that," redirected to the event organiser, and then offered to continue the booking flow.
-It stayed on track rather than abandoning the conversation.
+CALM recognized the parking request as out of scope, stated it can only help with confirming
+the venue booking, redirected to the event organiser for anything else, and offered to
+continue the booking flow. It stayed on track rather than abandoning the conversation.
 """
 
 # Compare Rasa CALM's handling of the out-of-scope request to what
 # LangGraph did in Exercise 2 Scenario 3. Min 40 words.
 OUT_OF_SCOPE_COMPARISON = """
-Rasa CALM handled out-of-scope gracefully: it acknowledged the request was outside its
-scope, gave a clear redirect, and offered to resume the booking flow. LangGraph's agent
-gave a vague "your input is lacking necessary details" without explaining its limitations
-or redirecting. CALM's explicit handle_out_of_scope flow made the response predictable
-and helpful, while LangGraph had no built-in mechanism for scope boundaries.
+Both handled out-of-scope well. Rasa CALM stated its scope boundary ("I can only help with
+confirming tonight's venue booking"), redirected to the organiser, and offered to resume the
+booking flow. LangGraph also recognised train times were outside its tools, suggested external
+resources (National Rail, Trainline), and offered to help with pubs, weather, or event
+planning instead. The key difference is that CALM's response is deterministic — driven by its
+explicit handle_out_of_scope flow — while LangGraph's response is improvised by the model and
+could vary between runs.
 """
 
 # ── Task B: Cutoff guard ───────────────────────────────────────────────────
